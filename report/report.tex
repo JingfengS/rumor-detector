@@ -1,0 +1,98 @@
+\documentclass{ctexart}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{parskip}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{mathtools}
+% \usepackage{ctex}
+\graphicspath{{./images/}}
+% \geometry{a4paper,left=1.25cm,right=1.25cm,top=2cm,bottom=2cm}
+\setlength{\parindent}{20pt}
+\titlespacing*{\paragraph}{20pt}{1em}{1em}
+
+\title{NIS4307 人工智能导论大作业}
+\author{
+    孙靖峰\\
+    \and
+    蒋竺君\\
+    \and
+    赵子辰
+}
+\date{编辑于\today}
+
+
+\begin{document}
+
+\begin{titlepage}
+    \maketitle
+\end{titlepage}
+
+% \tableofcontents
+\newpage
+
+\section{项目背景}
+
+在信息爆炸的社交媒体时代，谣言的传播速度和影响力呈指数级增长。虚假新闻、不实信息在社交平台（如微博、Twitter、Facebook）上的泛滥，不仅误导公众认知，还可能引发社会恐慌、影响金融市场稳定，甚至威胁公共安全（如公共卫生事件中的谣言）。据《麻省理工学院技术评论》研究，虚假信息在社交媒体上的传播速度比真实信息快6倍，且具有更强的用户参与度。因此，自动化谣言检测成为互联网内容治理的关键技术需求。
+
+\section{模型介绍}
+
+\subsection{逻辑回归(Logistic Regression)}
+
+逻辑回归是机器学习分类问题中最简单、最基础的模型。它假设数据服从伯努利分布，通过sigmoid函数将线性回归的输出映射到$[0,1]$区间，表示样本属于某个类别的概率。\par
+逻辑回归的概率计算公式为：
+\begin{equation}
+    P(y=1|x) = sigmoid(w^T x + b) =\frac{1}{1+e^{-(w^T x+b)}}
+\end{equation}\par
+其中，$w$为权重，$b$为截距。Sigmoid函数可以将任意实数压缩到$(0,1)$区间，使输出结果有实际意义。
+
+逻辑回归使用交叉熵损失(Cross-Entropy Loss)函数，以避免线性回归中的均方误差导致的非凸优化问题：
+\begin{equation}
+    J(w) = -\frac{1}{m} \sum_{i = 1}^{m} [y^{(i)} \log(h_w (x^{(i)})) + (1-y^{(i)})\log (1-h_w (x^{(i)}))])
+\end{equation}\par
+其中，$m$为样本数量，$y^{(i)}$为真实标签，$h_w (x^{(i)})$为预测概率。\par
+在计算过程中，使用梯度下降法最小化损失函数：
+\begin{equation}
+    w_{new} = w - \alpha \cdot \nabla_w J(w)
+\end{equation}\par
+
+\subsection{高斯回归(Gaussian Regression)}
+
+高斯回归假设每个类别的数据都服从多元高斯分布：
+\begin{equation}
+    p(x | y = k) = \frac{1}{(2 \pi)^{d/2} |\Sigma_k|^{1/2}} \exp (-\frac{1}{2} (x - \mu_k)^T \Sigma^{-1} (x-\mu_k))
+\end{equation}\par
+其中，$\mu_k$为第$k$类的均值向量，$\Sigma_k$为第$k$类的协方差矩阵，$d$则是特征维度。\par
+后续进行决策时，先通过贝叶斯定理计算样本$x$属于类别$k$的概率：
+\begin{equation}
+    p(y = k | x) = \frac{p(x | y = k)p(y = k)}{\sum_{l} p(x| y = l)p(y = l)}
+\end{equation}\par
+其中，$p(y = k)$是类别的先验概率，通常用训练集中各类别的比例估计。\par
+然后再选择使后验概率最大的类别：
+\begin{equation}
+    \hat{y} = \arg \max_k p(y = k | x)
+\end{equation}
+
+\section{数据处理与模型训练}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{training_set.png}
+    \caption{\label{training_set} 训练集的内容}
+\end{figure}
+
+如图\ref{training_set}所示，数据集中有许多URL、特殊符号、用户名、标签等，因而我们需要进行一系列预处理，然后再训练模型。
+
+\subsection{文本预处理}
+
+首先，我们需要将所有文本转为小写，然后我们移除URL、用户、话题标签、标点符号和数字，只保留文本内容。
+
+
+
+
+\end{document}
+
