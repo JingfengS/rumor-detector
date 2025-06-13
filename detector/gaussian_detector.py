@@ -62,7 +62,7 @@ class GuassianRumorDetector:
         return text_df, labels
 
 
-    def train(self, train_data: pd.DataFrame, train_labels: pd.DataFrame) -> None:
+    def fit(self, train_data: pd.Series, train_labels: pd.Series) -> None:
         """
         Train the Gaussian Rumor Detector.
         Note that this method should be used after the original data has been PREPROCESSED
@@ -72,8 +72,61 @@ class GuassianRumorDetector:
             train_labels (pd.DataFrame): The labels that used to train the model
         """
         print("正在处理文本特征...")
-        X_train_tfidf = self.tfidf_vectorizer.fit_transform(train_data)
+        self.tfidf_vectorizer.fit(train_data)
+        self.svd.fit(self.tfidf_vectorizer.transform(train_data))
+
+        train_tfidf = self.tfidf_vectorizer.transform(train_data)
+        train_svd = self.svd.transform(train_tfidf)
+        print("正在训练模型...")
+        self.model.fit(train_svd, train_labels)
 
     def classify(self, text: str) -> int:
-        # 谣言分类
-        return True
+        """
+        Classify a single text.
+        Args:
+            text (str): The input text to classify.
+        Returns:
+            int: The predicted label for the input text.
+        """
+        processed_test = self.preprocess_text(text)
+        test_tfidf = self.tfidf_vectorizer.transform([processed_test])
+        test_svd = self.svd.transform(test_tfidf)
+        prediction = self.model.predict(test_svd)
+        return prediction[0]
+
+    def classify_texts(self, texts: pd.Series) -> np.ndarray:
+        """
+        Classify a series of texts.
+
+        Args:
+            texts (pd.Series): The input texts to classify.
+
+        Returns:
+            np.ndarray: The predicted labels for the input texts.
+        """
+        processed_texts = texts.apply(self.preprocess_text)
+        test_tfidf = self.tfidf_vectorizer.transform(processed_texts)
+        test_svd = self.svd.transform(test_tfidf)
+        predictions = self.model.predict(test_svd)
+        return predictions
+    
+    
+if __name__ == "__main__":
+    train_data_path = Path(__file__).parent.parent / 'data' / 'train.csv'
+    val_data_path = Path(__file__).parent.parent / 'data' / 'val.csv'
+    train_data = pd.read_csv(train_data_path)
+    val_data = pd.read_csv(val_data_path)
+
+    detector = GuassianRumorDetector()
+    train_texts, train_labels = detector.preprocess_dataframe(train_data)
+    val_texts, val_labels = detector.preprocess_dataframe(val_data)
+    detector.fit(train_texts, train_labels)
+    
+    predictions = detector.classify_texts(val_texts)
+    accuracy = accuracy_score(val_labels, predictions)
+    print(f"Validation Accuracy: {accuracy:.4f}")
+    
+    sample_text = "Trump is the worst president in the world."
+    print("Classify a single text:", sample_text)
+    prediction = detector.classify(sample_text)
+    print(f"Predicted label for the sample text: {prediction}")
