@@ -12,6 +12,7 @@ from pathlib import Path
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
 from scipy.sparse import hstack
+import pickle
 
 
 class GuassianRumorDetector:
@@ -130,3 +131,8 @@ if __name__ == "__main__":
     print("Classify a single text:", sample_text)
     prediction = detector.classify(sample_text)
     print(f"Predicted label for the sample text: {prediction}")
+
+    with open('gaussian_detector.pkl', 'wb') as f:
+        pickle.dump(detector, f)
+    
+    print("Model saved to gaussian_detector.pkl")
